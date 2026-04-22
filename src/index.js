@@ -9,6 +9,7 @@ const app = express()
 const port = require('../src/utils/serverPort')
 const cors = require('cors')
 const cookieParser = require('cookie-parser')
+require('dotenv').config();
 
 
 

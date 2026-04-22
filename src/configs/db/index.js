@@ -4,7 +4,7 @@ mongoose.set('strictQuery',true);
 async function connect() {
 
     try {
-        await mongoose.connect("mongodb://admin:123456@localhost:27017/shops?authSource=admin", {
+        await mongoose.connect(process.env.DATABASE_URL, {
             useNewUrlParser: true,
             useUnifiedTopology: true,
         });
