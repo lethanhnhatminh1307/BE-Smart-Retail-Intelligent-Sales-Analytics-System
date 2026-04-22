@@ -133,7 +133,7 @@ class ProductController {
                 title:'update-product',
                 success:true,
                 data,
-                message: 'modify successfully'
+                message: 'Cập nhật sản phẩm thành công'
             })
 
         } catch (error) {
