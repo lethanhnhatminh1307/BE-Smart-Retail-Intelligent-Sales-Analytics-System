@@ -70,28 +70,33 @@ class ProductController {
 
     async uploadProduct(req, res, next){
         try {
-           
             const files = req.files
-
-            const {size,price,number,name,description,type,billId,itemId} = req.body
-            // console.log(size +" " + price + " " + number + " " + description+" "+name+" " +type);
+            const {size,price,name,description,type,billId,itemId,number} = req.body
             const image = []
-            console.log('size: ' + size);
-            const sizeArr = size.split(',')
+            const sizeArr = size ? size.split(',') : []
 
             files.forEach((file) => {
                 image.push(`http://${serverName}:${serverPort}/product/open-image?image=${file?.filename}`)
             })
    
-            const data  = new Product({size:sizeArr,price,number,image,name,description,type,billId,itemId})
+            const productData = {size:sizeArr,price,image,name,description,type}
+            if(billId) productData.billId = billId
+            if(itemId) productData.itemId = itemId
+            if(number) productData.number = number
+
+            const data = new Product(productData)
             await data.save()
-            await SpecifyBill.updateOne({billId: billId, itemId: itemId},{$inc:{recentNumber:-number}})
+
+            // Only update SpecifyBill if linked to a bill
+            if(billId && itemId && number){
+                await SpecifyBill.updateOne({billId, itemId},{$inc:{recentNumber:-number}})
+            }
    
-            return res.json({title:'success',success:true,data,message:'product updated successfully'})
+            return res.json({title:'success',success:true,data,message:'Thêm sản phẩm thành công'})
         } catch (error) {
             console.log(error);
+            return res.status(500).json({success:false,message:'Thêm sản phẩm thất bại'})
         }
-        
     }
 
     async delete(req, res, next) {
