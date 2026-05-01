@@ -50,13 +50,19 @@ class CartController {
     async update(req, res, next) {
         const {id,idProduct,number,size,image,price} = req.body 
         const product = await Product.findOne({_id:idProduct})
-        if(number > product.number) return  res.status(200).json({
+        
+        const variant = product?.variants?.find(v => v.size === size)
+        if (!variant) return res.status(400).json({ title: 'error', success: false, message: 'Size không hợp lệ hoặc sản phẩm không tồn tại' })
+
+        if(number > variant.stock) return  res.status(200).json({
             title:'warning',
             success:false,
-            message:'Vượt quá giới hạn, số lượng sản phẩm còn là '+product.number,
+            message:'Vượt quá giới hạn, số lượng sản phẩm size này còn là '+variant.stock,
             data:[],
             })
-        product.number = product.number - number
+        
+        variant.stock -= number
+        product.number -= number
         await product.save()
         const data = await Cart.findOneAndUpdate({ userID: id,idProduct,size,price,image},
             { $inc: { number:number } },
@@ -80,7 +86,13 @@ class CartController {
             const userID = req.body.userID
             const cart = await Cart.findOne({_id:id})
             if(cart){
-                const data = await Product.update({_id:isValidID(cart.idProduct)},{$inc:{number:cart.number}});
+                const product = await Product.findOne({_id:isValidID(cart.idProduct)});
+                if (product) {
+                    const variant = product.variants.find(v => v.size === cart.size)
+                    if (variant) variant.stock += cart.number;
+                    product.number += cart.number;
+                    await product.save();
+                }
             }
             await Cart.deleteOne({ _id: id,userID})
                 .then(data => {

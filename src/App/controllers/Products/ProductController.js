@@ -71,18 +71,27 @@ class ProductController {
     async uploadProduct(req, res, next){
         try {
             const files = req.files
-            const {size,price,name,description,type,billId,itemId,number} = req.body
+            const {variants,price,name,description,type,billId,itemId} = req.body
             const image = []
-            const sizeArr = size ? size.split(',') : []
+            
+            let parsedVariants = []
+            let totalNumber = 0
+            if (variants) {
+                try {
+                    parsedVariants = typeof variants === 'string' ? JSON.parse(variants) : variants
+                    totalNumber = parsedVariants.reduce((sum, v) => sum + Number(v.stock), 0)
+                } catch (error) {
+                    console.log('Error parsing variants', error)
+                }
+            }
 
             files.forEach((file) => {
                 image.push(`http://${serverName}:${serverPort}/product/open-image?image=${file?.filename}`)
             })
    
-            const productData = {size:sizeArr,price,image,name,description,type}
+            const productData = {variants: parsedVariants, number: totalNumber, price,image,name,description,type}
             if(billId) productData.billId = billId
             if(itemId) productData.itemId = itemId
-            if(number) productData.number = number
 
             const data = new Product(productData)
             await data.save()
@@ -117,9 +126,19 @@ class ProductController {
     async modify(req, res) {
         try {
             const files = req.files
-            const  {size,price,description,type,idProduct,fileUpdate} = req.body
+            const  {variants,price,description,type,idProduct,fileUpdate} = req.body
             let image = []  
-            const sizeArr = size.split(',')
+            
+            let parsedVariants = []
+            let totalNumber = 0
+            if (variants) {
+                try {
+                    parsedVariants = typeof variants === 'string' ? JSON.parse(variants) : variants
+                    totalNumber = parsedVariants.reduce((sum, v) => sum + Number(v.stock), 0)
+                } catch (error) {
+                    console.log('Error parsing variants', error)
+                }
+            }
             files.forEach((file) => {
                 image.push(`http://${serverName}:${serverPort}/product/open-image?image=${file?.filename}`)
             })
@@ -128,7 +147,7 @@ class ProductController {
                     image = [...image,...fileUpdate]
                 }else image=[...image,fileUpdate]
             }
-            const data = await Product.updateOne({_id:idProduct},{size:sizeArr,price,description,type,image})
+            const data = await Product.updateOne({_id:idProduct},{variants: parsedVariants, number: totalNumber, price,description,type,image})
             return res.status(200).json({
                 title:'update-product',
                 success:true,

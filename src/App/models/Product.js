@@ -14,8 +14,13 @@ const Product = new Schema(
         description: { type: String, default: ''},
         image: { type: Array, default: []},
         price: { type: Number},
-        size:{type:Array},
-        number:Number,
+        variants: [
+            {
+                size: { type: String, required: true },
+                stock: { type: Number, required: true, default: 0 }
+            }
+        ],
+        number: { type: Number, default: 0 },
         numberFeedback:{type:Number,default:0,min:0},
         starAverage: {type:Number,min:0,default:0},
         createdAt: { type: Date, default: Date.now },
