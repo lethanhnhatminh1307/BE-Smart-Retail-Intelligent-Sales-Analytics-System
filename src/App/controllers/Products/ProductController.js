@@ -4,12 +4,15 @@ const Category = require('../../models/Category')
 const serverName = require('os').hostname()
 const fs = require('fs')
 const SpecifyBill = require('../../models/SpecifyBill')
+const ProductVariant = require('../../models/ProductVariant')
 
 class ProductController {
     
     get(req, res,next) {
-        const nameSearch = req.query.find
-        Product.find({name:{$regex:new RegExp(nameSearch)}}).sortable(req)
+        const nameSearch = req.query.find || ''
+        Product.find({name:{$regex:new RegExp(nameSearch)}})
+            .populate('variants')
+            .sortable(req)
             .then(data=>{
                 return res.status(200).json(data)
             })
@@ -19,7 +22,7 @@ class ProductController {
     async getOne(req, res, next){
         try {
             const slug =req.query.slug || ''
-            const data = await Product.findOne({slug:slug })
+            const data = await Product.findOne({slug:slug }).populate('variants')
             const nameType = await Category.findOne({slug:data?.type})
             const suggestion =  await Product.find({type:data.type,slug:{$ne:slug}}).limit(10)
             res.json({
@@ -39,7 +42,7 @@ class ProductController {
 
     getProduct(req, res, next){
         const idProduct = req.query.idProduct
-        Product.find({_id: idProduct})
+        Product.find({_id: idProduct}).populate('variants')
             .then(data=>res.json(data))
             .catch(next)
     }
@@ -58,7 +61,7 @@ class ProductController {
             data:[]
         })
        
-        Product.find({type:type}).sortable(req)
+        Product.find({type:type}).populate('variants').sortable(req)
             .then(products => res.status(200).json(
                 {
                     message:'successfully',
@@ -71,7 +74,7 @@ class ProductController {
     async uploadProduct(req, res, next){
         try {
             const files = req.files
-            const {variants,price,name,description,type,billId,itemId} = req.body
+            const {variants,name,description,type,billId,itemId} = req.body
             const image = []
             
             let parsedVariants = []
@@ -79,7 +82,7 @@ class ProductController {
             if (variants) {
                 try {
                     parsedVariants = typeof variants === 'string' ? JSON.parse(variants) : variants
-                    totalNumber = parsedVariants.reduce((sum, v) => sum + Number(v.stock), 0)
+                    totalNumber = parsedVariants.reduce((sum, v) => sum + Number(v.stock || 0), 0)
                 } catch (error) {
                     console.log('Error parsing variants', error)
                 }
@@ -89,19 +92,38 @@ class ProductController {
                 image.push(`http://${serverName}:${serverPort}/product/open-image?image=${file?.filename}`)
             })
    
-            const productData = {variants: parsedVariants, number: totalNumber, price,image,name,description,type}
+            const productData = {number: totalNumber,image,name,description,type}
             if(billId) productData.billId = billId
             if(itemId) productData.itemId = itemId
 
             const data = new Product(productData)
             await data.save()
 
+            const variantIds = []
+            for (const v of parsedVariants) {
+                const newVariant = new ProductVariant({
+                    productId: data._id,
+                    sku: v.sku || '',
+                    size: v.size,
+                    price: Number(v.price || 0),
+                    stock: Number(v.stock || 0)
+                })
+                await newVariant.save()
+                variantIds.push(newVariant._id)
+            }
+
+            data.variants = variantIds
+            await data.save()
+            
+            const finalData = await Product.findById(data._id).populate('variants')
+
             // Only update SpecifyBill if linked to a bill
+            const number = totalNumber
             if(billId && itemId && number){
                 await SpecifyBill.updateOne({billId, itemId},{$inc:{recentNumber:-number}})
             }
    
-            return res.json({title:'success',success:true,data,message:'Thêm sản phẩm thành công'})
+            return res.json({title:'success',success:true,data: finalData,message:'Thêm sản phẩm thành công'})
         } catch (error) {
             console.log(error);
             return res.status(500).json({success:false,message:'Thêm sản phẩm thất bại'})
@@ -126,7 +148,7 @@ class ProductController {
     async modify(req, res) {
         try {
             const files = req.files
-            const  {variants,price,description,type,idProduct,fileUpdate} = req.body
+            const  {variants,description,type,idProduct,fileUpdate} = req.body
             let image = []  
             
             let parsedVariants = []
@@ -134,7 +156,7 @@ class ProductController {
             if (variants) {
                 try {
                     parsedVariants = typeof variants === 'string' ? JSON.parse(variants) : variants
-                    totalNumber = parsedVariants.reduce((sum, v) => sum + Number(v.stock), 0)
+                    totalNumber = parsedVariants.reduce((sum, v) => sum + Number(v.stock || 0), 0)
                 } catch (error) {
                     console.log('Error parsing variants', error)
                 }
@@ -147,11 +169,29 @@ class ProductController {
                     image = [...image,...fileUpdate]
                 }else image=[...image,fileUpdate]
             }
-            const data = await Product.updateOne({_id:idProduct},{variants: parsedVariants, number: totalNumber, price,description,type,image})
+            
+            // Re-create variants
+            await ProductVariant.deleteMany({ productId: idProduct })
+            const variantIds = []
+            for (const v of parsedVariants) {
+                const newVariant = new ProductVariant({
+                    productId: idProduct,
+                    sku: v.sku || '',
+                    size: v.size,
+                    price: Number(v.price || 0),
+                    stock: Number(v.stock || 0)
+                })
+                await newVariant.save()
+                variantIds.push(newVariant._id)
+            }
+
+            await Product.updateOne({_id:idProduct},{variants: variantIds, number: totalNumber, description,type,image})
+            
+            const updatedData = await Product.findById(idProduct).populate('variants')
             return res.status(200).json({
                 title:'update-product',
                 success:true,
-                data,
+                data: updatedData,
                 message: 'Cập nhật sản phẩm thành công'
             })
 

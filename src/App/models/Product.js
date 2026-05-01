@@ -13,13 +13,7 @@ const Product = new Schema(
         type:{ type: String},
         description: { type: String, default: ''},
         image: { type: Array, default: []},
-        price: { type: Number},
-        variants: [
-            {
-                size: { type: String, required: true },
-                stock: { type: Number, required: true, default: 0 }
-            }
-        ],
+        variants: [{ type: Schema.Types.ObjectId, ref: 'ProductVariant' }],
         number: { type: Number, default: 0 },
         numberFeedback:{type:Number,default:0,min:0},
         starAverage: {type:Number,min:0,default:0},
