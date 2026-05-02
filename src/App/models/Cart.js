@@ -7,6 +7,7 @@ const CartShema = new Schema(
     {
         userID:{type:String, required:true},
         idProduct:{type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
+        variantId:{type: mongoose.Schema.Types.ObjectId, ref: 'ProductVariant' },
         size:{type:String, required:true},
         number:{type:Number,required:true},
         price:Number,

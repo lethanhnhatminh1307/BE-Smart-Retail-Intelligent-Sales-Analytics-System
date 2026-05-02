@@ -5,7 +5,7 @@ class SuggestController{
         try {
             const limit = req.query.limit || 5
             const type = req.query.type;
-            const data = await Product.find(type?{type:type}:{}).limit(limit).sort({'createdAt':-1})
+            const data = await Product.find(type?{type:type}:{}).populate('variants').limit(limit).sort({'createdAt':-1})
             return res.status(200).json({
                 title:'success',
                 success:true,
