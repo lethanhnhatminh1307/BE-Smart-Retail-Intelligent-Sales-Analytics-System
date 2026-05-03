@@ -31,15 +31,48 @@ class OderController {
           success: false,
         });
       }
-      if (!userID || !infoOfOder) {
+      if (!userID) {
         return res.json({
           title: "error",
           success: false,
           message: "input infoOfOder or userID",
         });
       }
+
+      let newInbfoOfOder = [];
+
+      for (let i = 0; i < infoOfOder.length; i++) {
+        const productVariant = await ProductVariant.findOne({ _id: infoOfOder[i].variantId });
+
+        const product = await Product.findOne({ _id: infoOfOder[i].productId });
+
+        console.log(infoOfOder[i]);
+        
+
+
+        if (!productVariant || !product) {
+          return res.status(400).json({
+            title: "error",
+            success: false,
+            message: "product or product variant is not exist",
+          });
+        }
+
+        newInbfoOfOder.push({
+          name: product?.name,
+          description: product?.description,
+          image: productVariant?.sku,
+          price: productVariant?.price,
+          size: productVariant?.size,
+          number: infoOfOder[i].number,
+          color: productVariant?.color,
+        });
+      }
+
+
+
       const newOder = new OrderSchema({
-        infoOfOder: infoOfOder,
+        infoOfOder: newInbfoOfOder,
         infoOfUser: userID,
         typeOfPayment,
         codeDiscount,
@@ -94,7 +127,7 @@ class OderController {
         success: true,
         data: cart,
       });
-    } catch (error) {}
+    } catch (error) { }
   }
   // lấy thông tin oder của khách
   getAnOder(req, res, next) {

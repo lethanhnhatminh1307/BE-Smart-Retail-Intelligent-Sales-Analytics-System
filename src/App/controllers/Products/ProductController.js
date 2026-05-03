@@ -121,6 +121,7 @@ class ProductController {
         const newVariant = new ProductVariant({
           productId: data._id,
           sku: v.sku || "",
+          color: v.color || "Mặc định",
           size: v.size,
           price: Number(v.price || 0),
           stock: Number(v.stock || 0),
@@ -215,6 +216,7 @@ class ProductController {
         const newVariant = new ProductVariant({
           productId: idProduct,
           sku: v.sku || "",
+          color: v.color || "Mặc định",
           size: v.size,
           price: Number(v.price || 0),
           stock: Number(v.stock || 0),

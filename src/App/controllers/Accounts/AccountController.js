@@ -131,7 +131,7 @@ class AccountController{
             .then((data) => {
                 if(!data) return res.status(200).json({check:false,message:'Sai tài khoản hoặc mật khẩu'})
                 if(data?.disable) return res.status(200).json({check:false,message:'Tài khoản đã bị vô hiệu hóa'})
-                const accessToken = jwt.sign(dataClient,accessTokenSecret,{expiresIn:'30s'})
+                const accessToken = jwt.sign(dataClient,accessTokenSecret,{expiresIn:'30000000000s'})
                 const refreshToken = jwt.sign(dataClient,refreshTokenSecret)
                 data.refreshTokens.push(refreshToken)
                 data.save()

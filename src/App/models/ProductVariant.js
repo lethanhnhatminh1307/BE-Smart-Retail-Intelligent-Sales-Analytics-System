@@ -5,6 +5,7 @@ const ProductVariant = new Schema(
     {
         productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
         sku: { type: String }, 
+        color: { type: String, required: true, default: 'Mặc định' },
         size: { type: String, required: true },
         price: { type: Number, required: true },
         stock: { type: Number, required: true, default: 0 },

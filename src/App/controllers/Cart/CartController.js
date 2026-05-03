@@ -63,13 +63,15 @@ class CartController {
 
   // update cart (add product into cart)
   async update(req, res, next) {
-    const { id, idProduct, number, size, image, price } = req.body;
+    const { id, idProduct, number, size, image = '', price } = req.body;
     const product = await Product.findOne({ _id: idProduct }).populate(
       "variants",
     );
 
     console.log(size);
     console.log(product?.variants[0].size);
+
+    const imageProduct = product?.variants[0]?.sku || image;
 
     const variant = product?.variants?.find((v) => v.size === size);
     if (!variant)
@@ -93,7 +95,7 @@ class CartController {
     product.number -= number;
     await product.save();
     const data = await Cart.findOneAndUpdate(
-      { userID: id, idProduct, size, image },
+      { userID: id, idProduct, size, image: imageProduct },
       { $inc: { number: number }, price: variant?.price || 0, variantId: variant?._id },
       { upsert: true, returnOriginal: false },
     ).populate("idProduct");
