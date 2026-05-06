@@ -254,6 +254,38 @@ class OderController {
       data: data,
     });
   }
+  async getAllOrders(req, res, next) {
+    try {
+      const data = await OrderSchema.find()
+        .sort({ createdAt: -1 })
+        .populate("infoOfUser", "-password");
+      res.status(200).json({
+        success: true,
+        title: "all orders",
+        data: data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async updateOrderStatus(req, res, next) {
+    try {
+      const { id, status } = req.body;
+      const data = await OrderSchema.findOneAndUpdate(
+        { _id: id },
+        { status },
+        { new: true }
+      );
+      res.status(200).json({
+        success: true,
+        title: "update status successfully",
+        data: data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new OderController();

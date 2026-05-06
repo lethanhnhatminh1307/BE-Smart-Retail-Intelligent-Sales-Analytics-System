@@ -15,5 +15,7 @@ router.get('/get-one-oder',OrderController.getAnOder)
 
 router.get('/show-order',employee,OrderController.showOrder)
 router.get('/my-order',authenToken,OrderController.myOrder)
+router.get('/all', OrderController.getAllOrders)
+router.post('/update-status', OrderController.updateOrderStatus)
 
 module.exports = router

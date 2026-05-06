@@ -10,6 +10,7 @@ const NewsAndEvent = require('./NewsAndEvent')
 const Bill = require('./Bill')
 const Provider  = require('./Provider')
 const ProductName = require('./ProductName')
+const Dashboard = require('./Dashboard')
 
 function route(app){
     app.use('/account',Account)
@@ -24,6 +25,7 @@ function route(app){
     app.use('/provider',Provider)
     app.use('/name-of-product',ProductName)
     app.use('/app',App)
+    app.use('/dashboard',Dashboard)
 }
 
 module.exports = route;

@@ -123,6 +123,7 @@ class ProductController {
           sku: v.sku || "",
           color: v.color || "Mặc định",
           size: v.size,
+          cost: Number(v.cost || 0),
           price: Number(v.price || 0),
           stock: Number(v.stock || 0),
         });
@@ -164,6 +165,9 @@ class ProductController {
       const number = req.body.number * 1;
       const { billId = "", itemId = "" } = req.body;
       const data = await Product.findOneAndDelete({ _id: id });
+      if (data) {
+        await ProductVariant.deleteMany({ productId: id });
+      }
       await SpecifyBill.updateOne(
         { billId, itemId },
         { $inc: { recentNumber: number } },
@@ -218,6 +222,7 @@ class ProductController {
           sku: v.sku || "",
           color: v.color || "Mặc định",
           size: v.size,
+          cost: Number(v.cost || 0),
           price: Number(v.price || 0),
           stock: Number(v.stock || 0),
         });
