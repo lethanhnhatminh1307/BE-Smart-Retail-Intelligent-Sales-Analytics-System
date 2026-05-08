@@ -12,10 +12,10 @@ class OderController {
   // saving user's information bought
   async create(req, res, next) {
     try {
-      const userID = req.body.userID;
-      const infoOfOder = req.body.infoOfOder;
-      const typeOfPayment = req.body.typeOfPayment;
-      const codeDiscount = req.body.codeDiscount;
+      const userID = req.body?.userID;
+      const infoOfOder = req.body?.infoOfOder;
+      const typeOfPayment = req.body?.typeOfPayment;
+      const codeDiscount = req.body?.codeDiscount;
       const toDistrict = req.body?.toDistrict;
       const toProvince = req.body?.toProvince;
       const toVillage = req.body?.toVillage;
@@ -24,6 +24,24 @@ class OderController {
       const toSpecificAddress = req.body?.toSpecificAddress;
       const note = req.body?.note;
       const address = req.body?.address;
+      if (
+        !address ||
+        !toSpecificAddress ||
+        !userID ||
+        !infoOfOder ||
+        !typeOfPayment ||
+        !toDistrict ||
+        !toProvince ||
+        !toVillage ||
+        !toName ||
+        !toPhoneNumber
+      ) {
+        return res.json({
+          title: "error",
+          message: "miss information",
+          success: false,
+        });
+      }
       if (!Array.isArray(infoOfOder) && infoOfOder?.length > 0) {
         return res.json({
           title: "error",
@@ -42,13 +60,13 @@ class OderController {
       let newInbfoOfOder = [];
 
       for (let i = 0; i < infoOfOder.length; i++) {
-        const productVariant = await ProductVariant.findOne({ _id: infoOfOder[i].variantId });
+        const productVariant = await ProductVariant.findOne({
+          _id: infoOfOder[i].variantId,
+        });
 
         const product = await Product.findOne({ _id: infoOfOder[i].productId });
 
         console.log(infoOfOder[i]);
-        
-
 
         if (!productVariant || !product) {
           return res.status(400).json({
@@ -66,10 +84,9 @@ class OderController {
           size: productVariant?.size,
           number: infoOfOder[i].number,
           color: productVariant?.color,
+          variantId: productVariant._id,
         });
       }
-
-
 
       const newOder = new OrderSchema({
         infoOfOder: newInbfoOfOder,
@@ -100,10 +117,10 @@ class OderController {
       await Cart.deleteMany({
         _id: { $in: infoOfOder.map((item) => item._id) },
       });
-      await ProductVariant.updateOne(
-        { _id: infoOfOder[0].variantId },
-        { $inc: { stock: -infoOfOder[0].number } },
-      );
+      // await ProductVariant.updateOne(
+      //   { _id: infoOfOder[0].variantId },
+      //   { $inc: { stock: -infoOfOder[0].number } },
+      // );
 
       if (!Array.isArray(infoOfOder) || infoOfOder.length === 0) return;
 
@@ -127,7 +144,7 @@ class OderController {
         success: true,
         data: cart,
       });
-    } catch (error) { }
+    } catch (error) {}
   }
   // lấy thông tin oder của khách
   getAnOder(req, res, next) {
@@ -152,6 +169,44 @@ class OderController {
 
   async banking(req, res, next) {
     const { userID, infoOfOder } = req.body;
+
+    if (!Array.isArray(infoOfOder) && infoOfOder?.length > 0) {
+      return res.json({
+        title: "error",
+        message: "oder's information is not array",
+        success: false,
+      });
+    }
+
+    let newInbfoOfOder = [];
+
+    for (let i = 0; i < infoOfOder.length; i++) {
+      const productVariant = await ProductVariant.findOne({
+        _id: infoOfOder[i].variantId,
+      });
+
+      const product = await Product.findOne({ _id: infoOfOder[i].productId });
+
+      console.log(infoOfOder[i]);
+
+      if (!productVariant || !product) {
+        return res.status(400).json({
+          title: "error",
+          success: false,
+          message: "product or product variant is not exist",
+        });
+      }
+
+      newInbfoOfOder.push({
+        name: product?.name,
+        description: product?.description,
+        image: productVariant?.sku,
+        price: productVariant?.price,
+        size: productVariant?.size,
+        number: infoOfOder[i].number,
+        color: productVariant?.color,
+      });
+    }
 
     const newOrder = new OrderSchema({
       infoOfOder: infoOfOder,
@@ -275,8 +330,28 @@ class OderController {
       const data = await OrderSchema.findOneAndUpdate(
         { _id: id },
         { status },
-        { new: true }
+        { new: true },
       );
+
+      if (data && status === 'cancelled') {
+        
+        const productVariants = data?.infoOfOder || [];
+        console.log(productVariants);
+        
+        for (let index = 0; index < productVariants.length; index++) {
+          const element = productVariants[index];
+          
+          await ProductVariant.updateOne(
+            { _id: element?.variantId },
+            {
+              $inc: {
+                stock: element?.number ?? 0,
+              },
+            },
+          );
+        }
+      }
+
       res.status(200).json({
         success: true,
         title: "update status successfully",

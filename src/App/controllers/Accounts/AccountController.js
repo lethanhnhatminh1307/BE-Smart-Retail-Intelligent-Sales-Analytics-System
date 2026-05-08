@@ -107,7 +107,7 @@ class AccountController{
                             expiresIn: 0
                         }
                     })
-                    const accessToken = jwt.sign({userName:data.userName},accessTokenSecret,{expiresIn:'30s'})
+                    const accessToken = jwt.sign({userName:data.userName},accessTokenSecret,{expiresIn:'30000000000s'})
                     if(accessToken){
                         res.status(200).json({
                             token:{
