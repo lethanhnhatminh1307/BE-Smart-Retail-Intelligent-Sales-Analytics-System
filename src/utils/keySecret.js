@@ -1,4 +1,5 @@
-const accessTokenSecret = 'trungtin'
-const refreshTokenSecret = 'trungtinRefresh'
+const accessTokenSecret = 'shop'
+const refreshTokenSecret = 'shopRefresh'
+
 
 module.exports = {accessTokenSecret,refreshTokenSecret}

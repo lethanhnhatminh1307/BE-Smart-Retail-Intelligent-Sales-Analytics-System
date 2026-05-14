@@ -6,7 +6,7 @@ import ProductVariant from "../../models/ProductVariant.js";
 import Product from "../../models/Product.js";
 
 const genAI = new GoogleGenAI({
-  apiKey: "AIzaSyCGjeb7ia9ci_qG5TA28UO2qfrl-kDRg6I",
+  apiKey:  "AIzaSyAzYB_av9gt5Yzo2WcTLiASMfI2bb6rJO8"
 });
 
 export const analyzeByGemini = async (product, variants) => {
