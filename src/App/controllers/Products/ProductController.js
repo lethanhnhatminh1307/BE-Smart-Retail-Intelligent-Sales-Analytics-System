@@ -131,6 +131,11 @@ class ProductController {
         variantIds.push(newVariant._id);
       }
 
+      const prices = parsedVariants.map((v) => Number(v.price || 0));
+      const minPrice = Math.min(...prices);
+
+      data.price = minPrice;
+
       data.variants = variantIds;
       await data.save();
 
@@ -230,9 +235,12 @@ class ProductController {
         variantIds.push(newVariant._id);
       }
 
+      const prices = parsedVariants.map((v) => Number(v.price || 0));
+      const minPrice = Math.min(...prices);
+
       await Product.updateOne(
         { _id: idProduct },
-        { variants: variantIds, number: totalNumber, description, type, image, name },
+        { variants: variantIds, number: totalNumber, description, type, image, name, price: minPrice },
       );
 
       const updatedData =

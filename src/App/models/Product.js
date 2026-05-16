@@ -19,6 +19,7 @@ const Product = new Schema(
         starAverage: {type:Number,min:0,default:0},
         createdAt: { type: Date, default: Date.now },
         updatedAt: { type: Date, default: Date.now },
+        price: { type: Number, default: 0 },
         slug: { type: String, slug: "name",unique: true},
     },
     { timeseries: true },

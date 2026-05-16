@@ -6,7 +6,7 @@ import ProductVariant from "../../models/ProductVariant.js";
 import Product from "../../models/Product.js";
 
 const genAI = new GoogleGenAI({
-  apiKey:  "AIzaSyAzYB_av9gt5Yzo2WcTLiASMfI2bb6rJO8"
+  apiKey: "AIzaSyA1X0bWcDnHMNTG1BFwJMklylstKp1Jrw8",
 });
 
 export const analyzeByGemini = async (product, variants) => {
@@ -24,6 +24,8 @@ ${JSON.stringify(variants, null, 2)}
 - sold30Days: số lượng bán trong 30 ngày
 - avgDailySales: trung bình bán mỗi ngày
 - stockCoverageDays: số ngày tồn kho còn đủ bán
+- cost: giá vốn
+- price: giá bán
 
 Hãy phân tích NGẮN GỌN, tự nhiên và thực tế như đang tư vấn cho chủ shop.
 
@@ -34,6 +36,7 @@ Tập trung vào:
 - Variant nào tồn kho quá nhiều
 - Variant nào nên giảm giá hoặc xả kho
 - Đề xuất hành động cụ thể
+- Nếu sản phẩm bán chậm thì hãy đề xuất giá cần giảm để tăng nhu cầu (ví dụ: giảm 10% sẽ tăng nhu cầu lên 20%), hãy đưa ra giá cụ thể mà không làm lổ vốn
 
 Quy tắc:
 - sold30Days cao + stock thấp => nên nhập thêm
@@ -51,7 +54,7 @@ Yêu cầu:
 
 Ví dụ:
 - "Loại hàng Đỏ-S đang bán khá tốt, nên nhập thêm để tránh hết hàng."
-- "Loại hàng Đen-M tồn kho nhiều nhưng bán chậm, nên giảm giá nhẹ để đẩy hàng."
+- "Loại hàng Đen-M tồn kho nhiều nhưng bán chậm, nên giảm giá nhẹ để đẩy hàng. giảm xuống còn 100k sẽ tăng nhu cầu lên 15% mà vẫn có lãi."
 - "Size L gần như không có nhu cầu, chưa nên nhập thêm."
 
 Trả lời bằng markdown.
@@ -151,12 +154,15 @@ export const analyzes = async (req, res) => {
       const stockCoverageDays =
         avgDailySales > 0 ? Math.round(variant.stock / avgDailySales) : null;
 
+      console.log(variant);
+
       return {
         variantId: variant._id,
         size: variant.size,
         color: variant.color,
         price: variant.price,
         stock: variant.stock,
+        cost: variant.cost,
 
         sold30Days: sold,
 
