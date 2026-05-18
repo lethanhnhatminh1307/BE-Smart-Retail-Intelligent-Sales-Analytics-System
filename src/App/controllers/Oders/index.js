@@ -333,14 +333,17 @@ class OderController {
         { new: true },
       );
 
-      if (data && status === 'cancelled') {
-        
-        const productVariants = data?.infoOfOder || [];
-        console.log(productVariants);
-        
+      if (data && (status === "returned" || status === "cancelled")) {
+        const productVariants =
+          data?.infoOfOder?.map((item) => ({
+            variantId: item.variantId,
+            number: item.number,
+          })) || [];
+
         for (let index = 0; index < productVariants.length; index++) {
           const element = productVariants[index];
-          
+          console.log(element);
+
           await ProductVariant.updateOne(
             { _id: element?.variantId },
             {
@@ -351,6 +354,24 @@ class OderController {
           );
         }
       }
+
+      // if (data && status === "cancelled") {
+      //   const productVariants = data?.infoOfOder || [];
+      //   console.log(productVariants);
+
+      //   for (let index = 0; index < productVariants.length; index++) {
+      //     const element = productVariants[index];
+
+      //     await ProductVariant.updateOne(
+      //       { _id: element?.variantId },
+      //       {
+      //         $inc: {
+      //           stock: element?.number ?? 0,
+      //         },
+      //       },
+      //     );
+      //   }
+      // }
 
       res.status(200).json({
         success: true,
