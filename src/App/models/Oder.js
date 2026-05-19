@@ -21,7 +21,7 @@ const OderSchema = new Schema(
         isPaid:{type:Boolean, default: false},
         note:String,
         code:{type:String, default:null},
-        status: { type: String, enum: ['pending', 'delivering', 'delivered', 'cancelled'], default: 'pending' },
+        status: { type: String, enum: ['pending', 'delivering', 'delivered', 'cancelled', 'returned'], default: 'pending' },
         createdAt: { type: Date, default: Date.now },
         updatedAt: { type: Date, default: Date.now },
     },

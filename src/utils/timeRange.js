@@ -1,4 +1,4 @@
-export const getTimeRange = () => {
+const getTimeRange = () => {
   const now = new Date();
 
   // ===== TODAY =====
@@ -33,3 +33,5 @@ export const getTimeRange = () => {
     endOfMonth
   };
 };
+
+module.exports = { getTimeRange };
