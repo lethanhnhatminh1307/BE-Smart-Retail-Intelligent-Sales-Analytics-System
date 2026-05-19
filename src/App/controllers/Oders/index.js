@@ -7,6 +7,7 @@ const exportBill = require("../../models/exportBill");
 const Inventory = require("../../models/Inventory");
 const Product = require("../../models/Product");
 const ProductVariant = require("../../models/ProductVariant");
+const Discount = require("../../models/Discount");
 const limit = 10;
 class OderController {
   // saving user's information bought
@@ -24,6 +25,8 @@ class OderController {
       const toSpecificAddress = req.body?.toSpecificAddress;
       const note = req.body?.note;
       const address = req.body?.address;
+      const discount = req.body?.discount;
+
       if (
         !address ||
         !toSpecificAddress ||
@@ -101,6 +104,7 @@ class OderController {
         toSpecificAddress,
         note,
         address,
+        discount: discount || 0,
       });
       if (newOder) {
         newOder.save().then((data) => {
@@ -135,6 +139,11 @@ class OderController {
           },
         );
       });
+
+      await Discount.updateOne(
+        { code: codeDiscount },
+        { $set: { usedAt: new Date() } },
+      );
 
       await Promise.all(updateProduct);
 

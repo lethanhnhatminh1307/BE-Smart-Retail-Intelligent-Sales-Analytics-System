@@ -12,6 +12,7 @@ const Provider  = require('./Provider')
 const ProductName = require('./ProductName')
 const Dashboard = require('./Dashboard')
 const Analysis = require('./Analysis')
+const Discount = require('./Discount')
 
 function route(app){
     app.use('/account',Account)
@@ -25,6 +26,7 @@ function route(app){
     app.use('/news',NewsAndEvent)
     app.use('/bill',Bill)
     app.use('/provider',Provider)
+    app.use('/discount',Discount)
     app.use('/name-of-product',ProductName)
     app.use('/app',App)
     app.use('/dashboard',Dashboard)
